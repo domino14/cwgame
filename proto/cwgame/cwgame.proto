@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package cwgame;
+option go_package = "github.com/domino14/cwgame/gen/proto/cwgame";
+// GameHistory encodes a whole history of a game, and it should also encode
+// the initial board and tile configuration, etc. It can be considered
+// to be an instantiation of a GCG file.
+message GameHistory {
+  repeated GameEvent events = 1;
+  repeated PlayerInfo players = 2;
+  int32 version = 3;
+  string original_gcg = 4;
+  string lexicon = 5;
+  string id_auth = 6;
+  string uid = 7;
+  string title = 8;
+  string description = 9;
+  // last_known_racks should only be set in an incomplete / in-progress game.
+  // if set, player racks should be set to these values.
+  repeated string last_known_racks = 10;
+  // Add letter distribution (basically game name), board config, and more
+  // in the future.
+
+  // If second_went_first is set, the second player in `players` actually
+  // went first. not that this does NOT change the order of `last_known_racks`,
+  // which is always in the order of the listed players!
+  bool second_went_first = 11;
+  ChallengeRule challenge_rule = 12;
+  PlayState play_state = 13;
+  // Final scores of the game; the order is in the order of the listed players!
+  repeated int32 final_scores = 14;
+  // The variant, together with the lexicon, would encode the initial board
+  // and tile configuration.
+  string variant = 15;
+  // The index of the player who won. It's not always the person with the
+  // highest score, because there can be timeouts, etc. If it's a tie,
+  // it will be a -1.
+  int32 winner = 16;
+}
+
+enum PlayState {
+  PLAYING = 0;
+  WAITING_FOR_FINAL_PASS = 1;
+  GAME_OVER = 2;
+}
+
+enum ChallengeRule {
+  VOID = 0;
+  SINGLE = 1;
+  DOUBLE = 2;
+  FIVE_POINT = 3;
+  TEN_POINT = 4;
+}
+
+// This should be merged into Move.
+message GameEvent {
+  enum Type {
+    TILE_PLACEMENT_MOVE = 0;
+    PHONY_TILES_RETURNED = 1;
+    PASS = 2;
+    CHALLENGE_BONUS = 3;
+    EXCHANGE = 4;
+    END_RACK_PTS = 5;
+    TIME_PENALTY = 6;
+    // Only for international rules (or after 6 zeroes)
+    END_RACK_PENALTY = 7;
+    // Lose a turn for challenging a word incorrectly (only for double
+    // challenge)
+    UNSUCCESSFUL_CHALLENGE_TURN_LOSS = 8;
+    // Issue a challenge
+    CHALLENGE = 9;
+  }
+
+  enum Direction {
+    HORIZONTAL = 0;
+    VERTICAL = 1;
+  }
+  string nickname = 1;
+  string note = 2;
+  string rack = 3;
+  Type type = 4;
+  int32 cumulative = 5;
+  int32 row = 6;
+  int32 column = 7;
+  Direction direction = 8;
+  string position = 9;
+  string played_tiles = 10;
+  // An event will not have all of these; it depends on the type of the event.
+  string exchanged = 11;
+  int32 score = 12;
+  int32 bonus = 13;
+  int32 end_rack_points = 14;
+  int32 lost_score = 15;
+
+  bool is_bingo = 16;
+  // words_formed is a list of all words made by this play, in user-visible
+  // pretty form. The first word is the "main" word, anything after it are
+  // cross-words.
+  repeated string words_formed = 17;
+  int32 millis_remaining = 18;
+}
+
+message PlayerInfo {
+  string nickname = 1;
+  string real_name = 2;
+  // user_id is an internal, unchangeable user ID, whereas the other two user
+  // identifiers might possibly be mutable.
+  string user_id = 3;
+}
+
+// message PlayerState {
+//   PlayerInfo info = 1;
+//   int32 score = 2;
+//   string rack_letters = 3;
+// }
+
+// Interface for bots. Bots should accept a BotRequest and return a BotResponse.
+
+message BotRequest { GameHistory game_history = 1; }
+
+message BotResponse {
+  oneof response {
+    GameEvent move = 1;
+    string error = 2;
+  }
+}
