@@ -2,7 +2,6 @@ package game
 
 import (
 	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/domino14/cwgame/alphabet"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/domino14/cwgame/board"
 	"github.com/domino14/cwgame/config"
-	"github.com/domino14/cwgame/gaddagmaker"
 	pb "github.com/domino14/cwgame/gen/proto/cwgame"
 	"github.com/matryer/is"
 )
@@ -18,16 +16,6 @@ import (
 var DefaultConfig = config.DefaultConfig()
 
 func TestMain(m *testing.M) {
-	for _, lex := range []string{"NWL18"} {
-		gdgPath := filepath.Join(DefaultConfig.LexiconPath, "gaddag", lex+".gaddag")
-		if _, err := os.Stat(gdgPath); os.IsNotExist(err) {
-			gaddagmaker.GenerateGaddag(filepath.Join(DefaultConfig.LexiconPath, lex+".txt"), true, true)
-			err = os.Rename("out.gaddag", gdgPath)
-			if err != nil {
-				panic(err)
-			}
-		}
-	}
 	os.Exit(m.Run())
 }
 

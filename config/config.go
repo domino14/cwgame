@@ -12,6 +12,7 @@ type Config struct {
 	Debug                     bool
 	LetterDistributionPath    string
 	DefaultLetterDistribution string
+	DefaultLexicon            string
 }
 
 // Default config from environment variables. Since the config struct is
@@ -21,6 +22,7 @@ var defaultConfig = Config{
 	Debug:                     false,
 	LetterDistributionPath:    os.Getenv("LETTER_DISTRIBUTION_PATH"),
 	DefaultLetterDistribution: "English",
+	DefaultLexicon:            "NWL18",
 }
 
 func DefaultConfig() Config {
